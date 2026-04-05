@@ -45,9 +45,16 @@ public class SecurityConfig {
                 )
 
                 .authorizeHttpRequests(auth -> auth
+
+                        // ✅ Public endpoints
                         .requestMatchers("/api/auth/**").permitAll()
+
+                        // ✅ Allow GraphQL UI + endpoint
+                        .requestMatchers("/graphiql/**", "/graphql").permitAll()
+
+                        // 🔒 Protected APIs
                         .requestMatchers("/api/users/**").hasRole("ADMIN")
-                        .requestMatchers("/transactions/**").hasAnyRole("ADMIN","ANAlYST")
+                        .requestMatchers("/transactions/**").hasAnyRole("ADMIN","ANALYST")
                         .requestMatchers("/api/dashboard/**").hasAnyRole("ADMIN", "ANALYST", "VIEWER")
 
                         .anyRequest().authenticated()

@@ -1,0 +1,35 @@
+type Query {
+    dashboard: Dashboard
+}
+
+type Dashboard {
+    summary: DashboardSummary
+    categories: [CategorySummary]
+    trends: [Trend]
+    recent: [Transaction]
+}
+
+type DashboardSummary {
+    totalIncome: Float
+    totalExpense: Float
+    netBalance: Float
+}
+
+type CategorySummary {
+    category: String
+    total: Float
+}
+
+type Trend {
+    period: String
+    income: Float
+    expense: Float
+}
+
+type Transaction {
+    id: ID
+    amount: Float
+    type: String
+    category: String
+    date: String
+}
