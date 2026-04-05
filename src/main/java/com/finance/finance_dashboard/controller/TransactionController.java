@@ -4,6 +4,7 @@ import com.finance.finance_dashboard.dto.TransactionDTO;
 import com.finance.finance_dashboard.entity.RecordType;
 import com.finance.finance_dashboard.entity.Transaction;
 import com.finance.finance_dashboard.service.TransactionService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -17,65 +18,35 @@ public class TransactionController {
 
     private final TransactionService transactionService;
 
-    // CREATE
+    // ✅ CREATE
     @PostMapping
-    public Transaction addTransaction(@RequestBody TransactionDTO dto,
+    public Transaction addTransaction(@Valid @RequestBody TransactionDTO dto,
                                       Authentication auth) {
         return transactionService.addTransaction(dto, auth.getName());
     }
 
-    // READ
+    // ✅ READ
     @GetMapping
     public List<Transaction> getTransactions(Authentication auth) {
         return transactionService.getUserTransactions(auth.getName());
     }
 
-    // UPDATE
+    // ✅ UPDATE
     @PutMapping("/{id}")
     public Transaction update(@PathVariable Long id,
-                              @RequestBody Transaction transaction,
+                              @Valid @RequestBody Transaction transaction,
                               Authentication auth) {
         return transactionService.updateTransaction(id, transaction, auth.getName());
     }
 
-    // DELETE
+    // ✅ DELETE
     @DeleteMapping("/{id}")
     public String delete(@PathVariable Long id, Authentication auth) {
         transactionService.deleteTransaction(id, auth.getName());
         return "Deleted successfully";
     }
 
-//    // FILTER BY TYPE
-//    @GetMapping("/filter/type")
-//    public List<Transaction> filterByType(@RequestParam String type,
-//                                          Authentication auth) {
-//        return transactionService.filterByType(
-//                auth.getName(),
-//                RecordType.valueOf(type.toUpperCase())
-//        );
-//    }
-//
-//    // FILTER BY CATEGORY
-//    @GetMapping("/filter/category")
-//    public List<Transaction> filterByCategory(@RequestParam String category,
-//                                              Authentication auth) {
-//        return transactionService.filterByCategory(auth.getName(), category);
-//    }
-//
-//    // FILTER BY DATE RANGE
-//    @GetMapping("/filter/date")
-//    public List<Transaction> filterByDate(
-//            @RequestParam String start,
-//            @RequestParam String end,
-//            Authentication auth) {
-//
-//        return transactionService.filterByDateRange(
-//                auth.getName(),
-//                LocalDate.parse(start),
-//                LocalDate.parse(end)
-//        );
-//    }
-
+    // ✅ FILTER (IMPROVED)
     @GetMapping("/filter")
     public List<Transaction> filterTransactions(
             @RequestParam(required = false) String type,
@@ -83,20 +54,41 @@ public class TransactionController {
             @RequestParam(required = false) String start,
             @RequestParam(required = false) String end,
             Authentication auth) {
+
         RecordType recordType = null;
-        if (type != null) {
+
+        if (type != null && !type.isBlank()) {
             try {
                 recordType = RecordType.valueOf(type.toUpperCase());
-            } catch (Exception e) {
-                throw new RuntimeException("Invalid type value");
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("Invalid type. Use INCOME or EXPENSE");
             }
         }
+
+        LocalDate startDate = null;
+        LocalDate endDate = null;
+
+        try {
+            if (start != null && !start.isBlank()) {
+                startDate = LocalDate.parse(start);
+            }
+            if (end != null && !end.isBlank()) {
+                endDate = LocalDate.parse(end);
+            }
+        } catch (Exception e) {
+            throw new IllegalArgumentException("Invalid date format. Use YYYY-MM-DD");
+        }
+
+        if (startDate != null && endDate != null && startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("Start date cannot be after end date");
+        }
+
         return transactionService.filterTransactions(
                 auth.getName(),
                 recordType,
                 category,
-                start,
-                end
+                startDate,
+                endDate
         );
     }
 }

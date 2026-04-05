@@ -109,8 +109,8 @@ public class TransactionService {
     public List<Transaction> filterTransactions(String email,
                                                 RecordType type,
                                                 String category,
-                                                String start,
-                                                String end) {
+                                                LocalDate start,
+                                                LocalDate end) {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -133,14 +133,12 @@ public class TransactionService {
 
         // ✅ Filter by date range
         if (start != null && end != null) {
-            LocalDate startDate = LocalDate.parse(start);
-            LocalDate endDate = LocalDate.parse(end);
-
             transactions = transactions.stream()
-                    .filter(t -> !t.getDate().isBefore(startDate)
-                            && !t.getDate().isAfter(endDate))
+                    .filter(t -> !t.getDate().isBefore(start)
+                            && !t.getDate().isAfter(end))
                     .toList();
         }
+
 
         return transactions;
     }

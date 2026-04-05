@@ -8,17 +8,17 @@ import jakarta.validation.constraints.*;
 @Data
 public class TransactionDTO {
 
-    @NotNull
-    @Positive
+    @NotNull(message = "Amount is required")
+    @Positive(message = "Amount must be greater than 0")
     private Double amount;
 
-    @NotNull
+    @NotNull(message = "Type is required")
     private RecordType type;
 
-    @NotBlank
+    @NotBlank(message = "Category is required")
     private String category;
 
-    @NotNull
+    @NotNull(message = "Date is required")
     private LocalDate date;
 
     private String notes;
